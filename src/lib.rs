@@ -14,7 +14,7 @@
 //! Currently, async/await is not usable from libcore. Attempting to call .await
 //! from a `no_std` crate will yield the following error:
 //!
-//! ```rust
+//! ```norun
 //! error[E0433]: failed to resolve: could not find `poll_with_tls_context` in `future`
 //! error[E0433]: failed to resolve: could not find `from_generator` in `future`
 //! ```
@@ -38,6 +38,8 @@
 //! Here's a small example of the thread_local attribute in action:
 //!
 //! ```rust
+//! #![feature(thread_local)]
+//! use core::cell::Cell;
 //! #[thread_local]
 //! static TLS_CX: Cell<i32> = Cell::new(1);
 //! ```
