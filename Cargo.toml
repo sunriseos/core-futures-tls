@@ -2,10 +2,14 @@
 name = "core-futures-tls"
 version = "0.1.0"
 authors = ["roblabla <unfiltered@roblab.la>"]
-license = "Apache-2.0 OR MIT"
 edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 repository = "https://github.com/SunriseOS/core-futures-tls"
 description = "A libcore wrapper allowing async/await to be used from no_std crates"
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+readme = "README.md"
+keywords = ["async", "await", "nostd"]
+categories = ["asynchronous", "no-std"]
+license = "Apache-2.0 OR MIT"
 
 [dependencies]
