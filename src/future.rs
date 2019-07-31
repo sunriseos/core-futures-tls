@@ -42,14 +42,19 @@ impl<T: Generator<Yield = ()>> Future for GenFuture<T> {
     }
 }
 
-#[thread_local]
-static TLS_CX: Cell<Option<NonNull<Context<'static>>>> = Cell::new(None);
+// This is only safe in single-threaded context. If two thread of executions
+// attempt to use this simultaneously, UB will occur!
+//
+// We should replace this with TLS as soon as possible.
+static mut TLS_CX: Cell<Option<NonNull<Context<'static>>>> = Cell::new(None);
 
 struct SetOnDrop(Option<NonNull<Context<'static>>>);
 
 impl Drop for SetOnDrop {
     fn drop(&mut self) {
-        TLS_CX.set(self.0.take());
+        unsafe {
+            TLS_CX.set(self.0.take());
+        }
     }
 }
 
@@ -63,7 +68,9 @@ where
     let cx = unsafe {
         core::mem::transmute::<&mut Context<'_>, &mut Context<'static>>(cx)
     };
-    let old_cx = TLS_CX.replace(Some(NonNull::from(cx)));
+    let old_cx = unsafe {
+        TLS_CX.replace(Some(NonNull::from(cx)))
+    };
     let _reset = SetOnDrop(old_cx);
     f()
 }
@@ -81,12 +88,14 @@ where
 {
     // Clear the entry so that nested `get_task_waker` calls
     // will fail or set their own value.
-    let cx_ptr = TLS_CX.replace(None);
+    let cx_ptr = unsafe {
+        TLS_CX.replace(None)
+    };
     let _reset = SetOnDrop(cx_ptr);
 
     let mut cx_ptr = cx_ptr.expect(
-        "TLS Context not set. This is a rustc bug. \
-        Please file an issue on https://github.com/rust-lang/rust.");
+        "TLS Context not set. This is a core-futures-tls bug. \
+        Please file an issue on https://github.com/SunriseOS/core-futures-tls.");
 
     // Safety: we've ensured exclusive access to the context by
     // removing the pointer from TLS, only to be replaced once
