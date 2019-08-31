@@ -13,3 +13,9 @@ categories = ["asynchronous", "no-std"]
 license = "Apache-2.0 OR MIT"
 
 [dependencies]
+core = { version = "1.0.0", optional = true, package = "rustc-std-workspace-core" }
+
+[features]
+default = []
+rustc-internal-api = []
+rustc-dep-of-std = ["core", "rustc-internal-api"]
