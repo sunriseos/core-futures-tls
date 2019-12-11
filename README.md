@@ -86,5 +86,7 @@ which poll futures internally.
 core = { package = "core-futures-tls", version = "0.1.2", features = ["unsafe-single-thread"] }
 ```
 
-Running your code on a microcontroller that has only a single processor is an
-easy way of guaranteeing that the **single-thread** contract is upheld.
+Even systems which have only a single core, such as a microcontroller, need to ensure that
+the **unsafe-single-thread** contract is upheld. For example, interrupt routines are
+analagous to threads in such a system, so you must not poll any futures from within an
+interrupt routine.
