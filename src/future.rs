@@ -42,7 +42,7 @@ impl<T: Generator<Yield = ()>> Future for GenFuture<T> {
     }
 }
 
-#[cfg_attr(not(feature = "unsafe-single-thread"), thread_local)]
+#[thread_local]
 #[cfg(not(feature = "unsafe-single-thread"))]
 static TLS_CX: Cell<Option<NonNull<Context<'static>>>> = Cell::new(None);
 #[cfg(feature = "unsafe-single-thread")]
