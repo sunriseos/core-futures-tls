@@ -76,7 +76,7 @@
 
 #![no_std]
 #![feature(generator_trait, optin_builtin_traits)]
-#![cfg_attr(not(feature = "single-core"), feature(thread_local))]
+#![cfg_attr(not(feature = "single-thread"), feature(thread_local))]
 
 pub mod future;
 pub use core::*;

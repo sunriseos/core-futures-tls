@@ -1,6 +1,6 @@
 [package]
 name = "core-futures-tls"
-version = "0.1.1"
+version = "0.1.2"
 authors = ["roblabla <unfiltered@roblab.la>"]
 edition = "2018"
 
@@ -13,4 +13,4 @@ categories = ["asynchronous", "no-std"]
 license = "Apache-2.0 OR MIT"
 
 [features]
-single-core = []
+single-thread = []

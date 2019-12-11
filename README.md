@@ -1,7 +1,9 @@
 # core-futures-tls
 
 A libcore wrapper allowing async/await to be used from `no_std` crates, so long
-as their target supports ELF TLS (the `#[thread_local]` attribute).
+as their target supports ELF TLS (the `#[thread_local]` attribute). Targets without ELF
+TLS support can also be used by enabling the **single-thread** feature, [subject to
+restrictions](#without-elf-tls-support).
 
 # Usage
 
@@ -9,7 +11,7 @@ Put the following in your Cargo.toml:
 
 ```toml
 [dependencies]
-core = { package = "core-futures-tls", version = "0.1.0" }
+core = { package = "core-futures-tls", version = "0.1.2" }
 ```
 
 # Why
@@ -68,12 +70,21 @@ as if it was the libcore.
 
 ```toml
 [dependencies]
-core = { package = "core-futures-tls", version = "0.1.0" }
+core = { package = "core-futures-tls", version = "0.1.2" }
 ```
 
-# Closing thoughts
+# Without ELF TLS support
 
-While this crate still uses TLS, it should be possible to create a version
-that stores the thread local context in a global for single-threaded systems
-such as microcontrollers. This is left as an exercise to the reader.
+If your target does not support ELF TLS, or you don't want to use TLS, you may activate
+the **single-thread** feature of this crate to remove the dependency on TLS. However, if you
+activate this feature **you must guarantee that your program never polls futures (or any
+other generators) on more than one thread**. This includes any libraries you depend on
+which poll futures internally.
 
+```toml
+[dependencies]
+core = { package = "core-futures-tls", version = "0.1.2", features = ["single-thread"] }
+```
+
+Running your code on a microcontroller that has only a single processor is an
+easy way of guaranteeing that the **single-thread** contract is upheld.
