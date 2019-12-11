@@ -13,4 +13,4 @@ categories = ["asynchronous", "no-std"]
 license = "Apache-2.0 OR MIT"
 
 [features]
-single-thread = []
+unsafe-single-thread = []

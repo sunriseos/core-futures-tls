@@ -6,7 +6,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! core = { package = "core-futures-tls", version = "0.1.0" }
+//! core = { package = "core-futures-tls", version = "0.1.2" }
 //! ```
 //!
 //! # Why
@@ -65,7 +65,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! core = { package = "core-futures-tls", version = "0.1.0" }
+//! core = { package = "core-futures-tls", version = "0.1.2" }
 //! ```
 //!
 //! # Closing thoughts
@@ -76,7 +76,7 @@
 
 #![no_std]
 #![feature(generator_trait, optin_builtin_traits)]
-#![cfg_attr(not(feature = "single-thread"), feature(thread_local))]
+#![cfg_attr(not(feature = "unsafe-single-thread"), feature(thread_local))]
 
 pub mod future;
 pub use core::*;

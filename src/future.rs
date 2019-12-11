@@ -42,14 +42,14 @@ impl<T: Generator<Yield = ()>> Future for GenFuture<T> {
     }
 }
 
-#[cfg_attr(not(feature = "single-thread"), thread_local)]
-#[cfg(not(feature = "single-thread"))]
+#[cfg_attr(not(feature = "unsafe-single-thread"), thread_local)]
+#[cfg(not(feature = "unsafe-single-thread"))]
 static TLS_CX: Cell<Option<NonNull<Context<'static>>>> = Cell::new(None);
-#[cfg(feature = "single-thread")]
+#[cfg(feature = "unsafe-single-thread")]
 static TLS_CX: SingleCore<Cell<Option<NonNull<Context<'static>>>>> = SingleCore(Cell::new(None));
 
 // A wrapper which derefs to T and is always Sync. This is completely unsound, but is "safe"
-// because we only use this when the user activates the 'single-thread' feature to indicate
+// because we only use this when the user activates the 'unsafe-single-thread' feature to indicate
 // that the program will only ever be run on a single core.
 struct SingleCore<T>(T);
 
