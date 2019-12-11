@@ -2,11 +2,11 @@
 
 use core::cell::Cell;
 use core::marker::Unpin;
-use core::pin::Pin;
+use core::ops::{Deref, Drop, Generator, GeneratorState};
 use core::option::Option;
+use core::pin::Pin;
 use core::ptr::NonNull;
 use core::task::{Context, Poll};
-use core::ops::{Drop, Generator, GeneratorState};
 
 #[doc(inline)]
 pub use core::future::*;
@@ -43,7 +43,25 @@ impl<T: Generator<Yield = ()>> Future for GenFuture<T> {
 }
 
 #[thread_local]
+#[cfg(not(feature = "unsafe-single-thread"))]
 static TLS_CX: Cell<Option<NonNull<Context<'static>>>> = Cell::new(None);
+#[cfg(feature = "unsafe-single-thread")]
+static TLS_CX: SingleCore<Cell<Option<NonNull<Context<'static>>>>> = SingleCore(Cell::new(None));
+
+// A wrapper which derefs to T and is always Sync. This is completely unsound, but is "safe"
+// because we only use this when the user activates the 'unsafe-single-thread' feature to indicate
+// that the program will only ever be run on a single core.
+struct SingleCore<T>(T);
+
+unsafe impl<T> Sync for SingleCore<T> {}
+
+impl<T> Deref for SingleCore<T> {
+    type Target = T;
+
+    fn deref(&self) -> &T {
+        &self.0
+    }
+}
 
 struct SetOnDrop(Option<NonNull<Context<'static>>>);
 
@@ -57,12 +75,10 @@ impl Drop for SetOnDrop {
 /// Sets the thread-local task context used by async/await futures.
 pub fn set_task_context<F, R>(cx: &mut Context<'_>, f: F) -> R
 where
-    F: FnOnce() -> R
+    F: FnOnce() -> R,
 {
     // transmute the context's lifetime to 'static so we can store it.
-    let cx = unsafe {
-        core::mem::transmute::<&mut Context<'_>, &mut Context<'static>>(cx)
-    };
+    let cx = unsafe { core::mem::transmute::<&mut Context<'_>, &mut Context<'static>>(cx) };
     let old_cx = TLS_CX.replace(Some(NonNull::from(cx)));
     let _reset = SetOnDrop(old_cx);
     f()
@@ -77,7 +93,7 @@ where
 /// retrieved by a surrounding call to get_task_context.
 pub fn get_task_context<F, R>(f: F) -> R
 where
-    F: FnOnce(&mut Context<'_>) -> R
+    F: FnOnce(&mut Context<'_>) -> R,
 {
     // Clear the entry so that nested `get_task_waker` calls
     // will fail or set their own value.
@@ -86,7 +102,8 @@ where
 
     let mut cx_ptr = cx_ptr.expect(
         "TLS Context not set. This is a rustc bug. \
-        Please file an issue on https://github.com/rust-lang/rust.");
+         Please file an issue on https://github.com/rust-lang/rust.",
+    );
 
     // Safety: we've ensured exclusive access to the context by
     // removing the pointer from TLS, only to be replaced once
@@ -101,7 +118,7 @@ where
 /// Polls a future in the current thread-local task waker.
 pub fn poll_with_tls_context<F>(f: Pin<&mut F>) -> Poll<F::Output>
 where
-    F: Future
+    F: Future,
 {
     get_task_context(|cx| F::poll(f, cx))
 }

@@ -6,7 +6,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! core = { package = "core-futures-tls", version = "0.1.0" }
+//! core = { package = "core-futures-tls", version = "0.1.2" }
 //! ```
 //!
 //! # Why
@@ -27,7 +27,7 @@
 //! being executed. When polling a future, this task will get retrieved in order
 //! to call the future's `poll` function.
 //!
-//! 
+//!
 //! As mentioned, the libstd version of those functions use a thread-local
 //! variable, which is only supported in rust's libstd through the
 //! `thread_local!` macro - which doesn't exist in libcore. There is, however,
@@ -65,17 +65,30 @@
 //!
 //! ```toml
 //! [dependencies]
-//! core = { package = "core-futures-tls", version = "0.1.0" }
+//! core = { package = "core-futures-tls", version = "0.1.2" }
 //! ```
 //!
-//! # Closing thoughts
+//! # Without ELF TLS support
 //!
-//! While this crate still uses TLS, it should be possible to create a version
-//! that stores the thread local context in a global for single-threaded systems
-//! such as microcontrollers. This is left as an exercise to the reader.
+//! If your target does not support ELF TLS, or you don't want to use TLS, you may activate
+//! the **unsafe-single-thread** feature of this crate to remove the dependency on TLS. However, if you
+//! activate this feature **you must guarantee that your program never polls futures (or any
+//! other generators) on more than one thread**. This includes any libraries you depend on
+//! which poll futures internally.
+//!
+//! ```toml
+//! [dependencies]
+//! core = { package = "core-futures-tls", version = "0.1.2", features = ["unsafe-single-thread"] }
+//! ```
+//!
+//! Even systems which have only a single core, such as a microcontroller, need to ensure that
+//! the **unsafe-single-thread** contract is upheld. For example, interrupt routines are
+//! analagous to threads in such a system, so you must not poll any futures from within an
+//! interrupt routine.
 
 #![no_std]
-#![feature(thread_local, generator_trait, optin_builtin_traits)]
+#![feature(generator_trait, optin_builtin_traits)]
+#![cfg_attr(not(feature = "unsafe-single-thread"), feature(thread_local))]
 
 pub mod future;
 pub use core::*;
