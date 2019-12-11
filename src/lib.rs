@@ -27,7 +27,7 @@
 //! being executed. When polling a future, this task will get retrieved in order
 //! to call the future's `poll` function.
 //!
-//! 
+//!
 //! As mentioned, the libstd version of those functions use a thread-local
 //! variable, which is only supported in rust's libstd through the
 //! `thread_local!` macro - which doesn't exist in libcore. There is, however,
@@ -75,7 +75,8 @@
 //! such as microcontrollers. This is left as an exercise to the reader.
 
 #![no_std]
-#![feature(thread_local, generator_trait, optin_builtin_traits)]
+#![feature(generator_trait, optin_builtin_traits)]
+#![cfg_attr(not(feature = "single-core"), feature(thread_local))]
 
 pub mod future;
 pub use core::*;

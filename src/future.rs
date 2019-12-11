@@ -6,7 +6,7 @@ use core::pin::Pin;
 use core::option::Option;
 use core::ptr::NonNull;
 use core::task::{Context, Poll};
-use core::ops::{Drop, Generator, GeneratorState};
+use core::ops::{Deref, Drop, Generator, GeneratorState};
 
 #[doc(inline)]
 pub use core::future::*;
@@ -42,8 +42,23 @@ impl<T: Generator<Yield = ()>> Future for GenFuture<T> {
     }
 }
 
-#[thread_local]
+#[cfg_attr(not(feature = "single-core"), thread_local)]
+#[cfg(not(feature = "single-core"))]
 static TLS_CX: Cell<Option<NonNull<Context<'static>>>> = Cell::new(None);
+#[cfg(feature = "single-core")]
+static TLS_CX: SingleCore<Cell<Option<NonNull<Context<'static>>>>> = SingleCore(Cell::new(None));
+
+struct SingleCore<T>(T);
+
+unsafe impl<T> Sync for SingleCore<T> {}
+
+impl<T> Deref for SingleCore<T> {
+    type Target = T;
+
+    fn deref(&self) -> &T {
+        &self.0
+    }
+}
 
 struct SetOnDrop(Option<NonNull<Context<'static>>>);
 
