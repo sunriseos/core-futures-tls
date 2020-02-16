@@ -27,7 +27,7 @@
 //! being executed. When polling a future, this task will get retrieved in order
 //! to call the future's `poll` function.
 //!
-//! 
+//!
 //! As mentioned, the libstd version of those functions use a thread-local
 //! variable, which is only supported in rust's libstd through the
 //! `thread_local!` macro - which doesn't exist in libcore. There is, however,
